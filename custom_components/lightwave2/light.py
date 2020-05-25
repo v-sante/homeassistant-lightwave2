@@ -1,7 +1,7 @@
 import logging
 from custom_components.lightwave2 import LIGHTWAVE_LINK2, LIGHTWAVE_BACKEND, BACKEND_EMULATED, LIGHTWAVE_ENTITIES, LIGHTWAVE_WEBHOOK
 from homeassistant.components.light import (
-    ATTR_BRIGHTNESS, SUPPORT_BRIGHTNESS, Light)
+    ATTR_BRIGHTNESS, SUPPORT_BRIGHTNESS, LightEntity)
 from homeassistant.core import callback
 from .const import DOMAIN
 
@@ -125,17 +125,7 @@ class LWRF2Light(Light):
 async def async_turn_on(self, **kwargs):
         """Turn the LightWave light on."""
         self._state = True
-
-        if ATTR_BRIGHTNESS in kwargs:
-            self._brightness = kwargs[ATTR_BRIGHTNESS]
-
-        if self._brightness != MAX_BRIGHTNESS:
-            self._lwlink.turn_on_with_brightness(
-                self._featureset_id, self._brightness
-            )
-        else:
-            self._lwlink.turn_on_by_featureset_id(self._featureset_id)
-
+        await self._lwlink.async_turn_on_by_featureset_id(self._featureset_id)
         self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs):
