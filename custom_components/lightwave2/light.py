@@ -131,10 +131,10 @@ async def async_turn_on(self, **kwargs):
 
         if self._brightness != MAX_BRIGHTNESS:
             self._lwlink.turn_on_with_brightness(
-                self._device_id, self._name, self._brightness
+                self._featureset_id, self._brightness
             )
         else:
-            self._lwlink.turn_on_light(self._device_id, self._name)
+            self._lwlink.turn_on_by_featureset_id(self._featureset_id)
 
         self.async_write_ha_state()
 
