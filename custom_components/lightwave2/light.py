@@ -8,6 +8,7 @@ from .const import DOMAIN
 DEPENDENCIES = ['lightwave2']
 _LOGGER = logging.getLogger(__name__)
 ATTR_CURRENT_POWER_W = "current_power_w"
+MAX_BRIGHTNESS = 255
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Find and return LightWave lights."""
@@ -121,22 +122,21 @@ class LWRF2Light(Light):
         """Lightwave switch is on state."""
         return self._state
 
-    async def async_adjust_brightness(self, **kwargs):
-        """Adjust brightness."""
-    
-    if ATTR_BRIGHTNESS in kwargs and (kwargs[ATTR_BRIGHTNESS] != self._brightness):
-            self._brightness = kwargs[ATTR_BRIGHTNESS]
-            _LOGGER.debug("Setting brightness %s %s", self._brightness, int(self._brightness / 255 * 100))
-        await self._lwlink.async_set_brightness_by_featureset_id(
-            self._featureset_id, int(round(self._brightness / 255 * 100)))
-    
-    async def async_turn_on(self, **kwargs):
+async def async_turn_on(self, **kwargs):
         """Turn the LightWave light on."""
-                              
         self._state = True
-        await self._lwlink.async_turn_on_by_featureset_id(self._featureset_id)
 
-        self.async_schedule_update_ha_state()
+        if ATTR_BRIGHTNESS in kwargs:
+            self._brightness = kwargs[ATTR_BRIGHTNESS]
+
+        if self._brightness != MAX_BRIGHTNESS:
+            self._lwlink.turn_on_with_brightness(
+                self._device_id, self._name, self._brightness
+            )
+        else:
+            self._lwlink.turn_on_light(self._device_id, self._name)
+
+        self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs):
         """Turn the LightWave light off."""
